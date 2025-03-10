@@ -29,8 +29,6 @@ def warren_buffett_agent(state: AgentState):
         progress.update_status("warren_buffett_agent", ticker, "Fetching financial metrics")
         # Fetch required data
         metrics = get_financial_metrics(ticker, end_date, period="ttm", limit=5)
-        print(metrics)
-        exit(0)
         progress.update_status("warren_buffett_agent", ticker, "Gathering financial line items")
         financial_line_items = search_line_items(
             ticker,

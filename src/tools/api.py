@@ -60,15 +60,16 @@ def get_financial_metrics(
 ) -> list[FinancialMetrics]:
     """Fetch financial metrics from cache or API."""
     # Check cache first
-    # if cached_data := _cache.get_financial_metrics(ticker):
-    #     # Filter cached data by date and limit
-    #     filtered_data = [FinancialMetrics(**metric) for metric in cached_data if metric["report_period"] <= end_date]
-    #     filtered_data.sort(key=lambda x: x.report_period, reverse=True)
-    #     if filtered_data:
-    #         return filtered_data[:limit]
+    if cached_data := _cache.get_financial_metrics(ticker):
+        print("cache hit")
+        # Filter cached data by date and limit
+        filtered_data = [FinancialMetrics(**metric) for metric in cached_data if metric["report_period"] <= end_date]
+        filtered_data.sort(key=lambda x: x.report_period, reverse=True)
+        if filtered_data:
+            return filtered_data[:limit]
 
     if db_data := _db.get_financial_metrics(ticker, limit=limit):
-        print("access db")
+        print("db hit")
         # Filter db data by date and limit
         filtered_data = [FinancialMetrics(**metric) for metric in db_data if metric["report_period"] <=  end_date]
         filtered_data.sort(key=lambda x: x.report_period, reverse=True)

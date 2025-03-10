@@ -42,7 +42,6 @@ class Database:
                     row_dict['report_period'] = row_dict['report_period'].strftime('%Y-%m-%d')
                 result.append(row_dict)
             
-            print(result)
             return result
         except Exception as e:
             print(f"Error fetching financial metrics: {e}")
