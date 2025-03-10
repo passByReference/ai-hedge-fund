@@ -12,7 +12,7 @@ from agents.portfolio_manager import portfolio_management_agent
 from agents.technicals import technical_analyst_agent
 from agents.risk_manager import risk_management_agent
 from agents.sentiment import sentiment_agent
-from agents.warren_buffett import warren_buffett_agent
+# from agents.warren_buffett import warren_buffett_agent
 from graph.state import AgentState
 from agents.valuation import valuation_agent
 from utils.display import print_trading_output
@@ -52,6 +52,7 @@ def run_hedge_fund(
     selected_analysts: list[str] = [],
     model_name: str = "gpt-4o",
     model_provider: str = "OpenAI",
+    db_conn=None,
 ):
     # Start progress tracking
     progress.start()
@@ -63,6 +64,7 @@ def run_hedge_fund(
             agent = workflow.compile()
         else:
             agent = app
+
 
         final_state = agent.invoke(
             {
@@ -266,16 +268,26 @@ if __name__ == "__main__":
             } for ticker in tickers
         }
     }
-
+  
     # Run the hedge fund
-    result = run_hedge_fund(
-        tickers=tickers,
-        start_date=start_date,
-        end_date=end_date,
-        portfolio=portfolio,
-        show_reasoning=args.show_reasoning,
-        selected_analysts=selected_analysts,
-        model_name=model_choice,
-        model_provider=model_provider,
-    )
+    if conn:
+        try:
+            result = run_hedge_fund(
+                tickers=tickers,
+                start_date=start_date,
+                end_date=end_date,
+                portfolio=portfolio,
+                show_reasoning=args.show_reasoning,
+                selected_analysts=selected_analysts,
+                model_name=model_choice,
+                model_provider=model_provider,
+                db_conn=conn
+            )
+            print_trading_output(result)
+        finally:
+            # Close the database connection
+            conn.close()
+            print("Database connection closed.")
+    else:
+        print("Skipping hedge fund run due to database connection issues.")
     print_trading_output(result)

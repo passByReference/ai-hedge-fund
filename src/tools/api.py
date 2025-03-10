@@ -1,8 +1,9 @@
 import os
 import pandas as pd
 import requests
-
+import datetime
 from data.cache import get_cache
+from data.database import get_database
 from data.models import (
     CompanyNews,
     CompanyNewsResponse,
@@ -19,7 +20,7 @@ from data.models import (
 # Global cache instance
 _cache = get_cache()
 
-
+_db = get_database()
 def get_prices(ticker: str, start_date: str, end_date: str) -> list[Price]:
     """Fetch price data from cache or API."""
     # Check cache first
@@ -59,13 +60,20 @@ def get_financial_metrics(
 ) -> list[FinancialMetrics]:
     """Fetch financial metrics from cache or API."""
     # Check cache first
-    if cached_data := _cache.get_financial_metrics(ticker):
-        # Filter cached data by date and limit
-        filtered_data = [FinancialMetrics(**metric) for metric in cached_data if metric["report_period"] <= end_date]
+    # if cached_data := _cache.get_financial_metrics(ticker):
+    #     # Filter cached data by date and limit
+    #     filtered_data = [FinancialMetrics(**metric) for metric in cached_data if metric["report_period"] <= end_date]
+    #     filtered_data.sort(key=lambda x: x.report_period, reverse=True)
+    #     if filtered_data:
+    #         return filtered_data[:limit]
+
+    if db_data := _db.get_financial_metrics(ticker, limit=limit):
+        print("access db")
+        # Filter db data by date and limit
+        filtered_data = [FinancialMetrics(**metric) for metric in db_data if metric["report_period"] <=  end_date]
         filtered_data.sort(key=lambda x: x.report_period, reverse=True)
         if filtered_data:
             return filtered_data[:limit]
-
     # If not in cache or insufficient data, fetch from API
     headers = {}
     if api_key := os.environ.get("FINANCIAL_DATASETS_API_KEY"):
@@ -86,6 +94,8 @@ def get_financial_metrics(
 
     # Cache the results as dicts
     _cache.set_financial_metrics(ticker, [m.model_dump() for m in financial_metrics])
+    _db.set_financial_metrics(ticker, [m.model_dump() for m in financial_metrics])
+    
     return financial_metrics
 
 
